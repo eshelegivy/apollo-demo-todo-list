@@ -16,17 +16,19 @@ const ALL_TODOS_GQL = gql`
 const logStatus = (status) => {
     switch(status) {
         case NetworkStatus.loading:
-            console.log('Status: Loading...');
+            console.log('Status: Loading...', status);
             break;
         case NetworkStatus.fetchMore:
-            console.log('Status: Fetching more...');
+            console.log('Status: Fetching more...', status);
             break;
         case NetworkStatus.refetch:
-            console.log('Status: Refetching...');
+            console.log('Status: Refetching...', status);
             break;
         case NetworkStatus.ready:
-            console.log('Status: Ready!');
+            console.log('Status: Ready!', status);
             break;
+        default:
+            console.log('Status: ',status);
     }
 }
 
@@ -59,7 +61,6 @@ export default (filter) => {
             },
         },
         notifyOnNetworkStatusChange: true,
-        fetchPolicy: 'cache-and-network',
     });
 
     const handleFetchMore = () => {
@@ -81,23 +82,24 @@ export default (filter) => {
 
             //     return prev;
             // },
-        }).then(res => setLimit(currentLength + res.data.todos.length || limit));
+        }).then(res => setLimit((currentLength + res.data.todos.length) || limit));
     };
 
     const isLoading = networkStatus === NetworkStatus.loading;
+    const isSetVars = networkStatus === NetworkStatus.setVariables;
     const isFetchingMore = networkStatus === NetworkStatus.fetchMore;
     const isReFetching = networkStatus === NetworkStatus.refetch;
 
     logStatus(networkStatus);
-
 
     return {
         handleFetchMore,
         isLoading,
         isFetchingMore,
         isReFetching,
+        isSetVars,
         error,
-        data,
+        data: data && {...data},
         fetchMore,
         networkStatus,
         refetch,

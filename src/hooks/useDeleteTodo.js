@@ -32,7 +32,6 @@ export default () => {
                 },
             });
         },
-        // refetchQueries: ['getTodos'],
     });
 
     const handleDelete = (todo) => {

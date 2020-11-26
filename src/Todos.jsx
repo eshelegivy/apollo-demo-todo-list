@@ -1,30 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { gql, useQuery, useMutation, NetworkStatus, useLazyQuery } from "@apollo/client";
 import { Waypoint } from 'react-waypoint';
 import { parseApolloStoreFieldNameArgs } from "./helpers";
-
 import useDeleteTodo from './hooks/useDeleteTodo';
 import useGetTodos from './hooks/useGetTodos';
-
-const GET_TODO_GQL = gql`
-query getTodo($id: String!) {
-  todos(id: $id) {
-    id
-    text
-    checked
-    description
-  }
-}
-`;
 
 export default function Todos({ onTodoClick }) {
     const [filter, setFilter] = useState('all');
     const { handleDelete } = useDeleteTodo();
-    const { data, handleFetchMore, refetch, error, isLoading, isFetchingMore, isReFetching,
+    const { data, handleFetchMore, refetch, error, isLoading, isFetchingMore, isReFetching, isSetVars,
     } = useGetTodos(filter);
-
-    const [getDetails, { loadingDetails }] = useLazyQuery(GET_TODO_GQL, {});
-
 
     const handleFilterChange = (e) => {
         setFilter(e.target.value);
@@ -52,15 +37,15 @@ export default function Todos({ onTodoClick }) {
                 </span>
             </div>
             <ul>
-                {data.todos.map((todo) => (
+                {data.todos && data.todos.map((todo) => (
                     <li key={todo.id} className={`todo_item ${todo.id.startsWith('Temp') ? 'saving' : 'saved'}`}>
                         <div className="delete-button" onClick={() => handleDelete(todo)}>x</div>
-                        <div onClick={() => onTodoClick(todo)}>
+                        <div onClick={() => onTodoClick(todo.id)}>
                             {todo.checked ? "V" : "X"} - {todo.text}{" "}
                         </div>
                     </li>
                 ))}
-                {data.todos.length < data.todosCount && (
+                {data.todos && data.todos.length < data.todosCount && (
                     <Waypoint onEnter={handleFetchMore} bottomOffset="0" />
                 )}
                 {isFetchingMore && (

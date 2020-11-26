@@ -22,42 +22,62 @@ export default () => {
             description,
             checked,
             },
-            //   refetchQueries: ['getTodos'],
             optimisticResponse: {
                 addTodo: {
                     id: `Temp-${Math.floor((1 + Math.random()) * 0x10000).toString()}`,
                     text,
-                    description,
                     checked,
+                    description,
                     __typename: "Todo"
                 },
             },
-            nextFetchPolicy: 'cache-first',
             update(cache, { data: { addTodo } }) {
-                cache.modify({
-                    fields: {
-                    todos(existingTodos = [], { storeFieldName, fieldName }) {
-                        const queryArgs = parseApolloStoreFieldNameArgs(storeFieldName, fieldName);
-                        if (queryArgs.filter && (queryArgs.filter.checked === true || !queryArgs.filter.checked)) {
-                            const newTodoRef = cache.writeFragment({
-                                data: addTodo,
-                                fragment: gql`
-                                fragment NewTodo on Todo {
-                                    id
-                                    text
-                                    checked
-                                    description
-                                }
-                                `
-                            });
 
-                            return [newTodoRef, ...existingTodos];
+                /** with readQuery and writeQuery */
+                const query = gql`
+                    query getTodos($filter: TodosFilter) {
+                        todos(filter: { checked: null }) {
+                            id
+                            text
+                            checked
+                            description
                         }
-
-                        return existingTodos;
                     }
-                    }
+                `;
+                const data = cache.readQuery({ query });
+                console.log(data);
+                cache.writeQuery({
+                    query,
+                    data: {
+                        todos: [addTodo, ...data.todos],
+                    },
                 });
+
+                // /** with cache modify */
+                // const newTodoRef = cache.writeFragment({
+                //     data: addTodo,
+                //     fragment: gql`
+                //     fragment NewTodo on Todo {
+                //         id
+                //         text
+                //         checked
+                //         description
+                //     }
+                //     `
+                // });
+                // cache.modify({
+                //     fields: {
+                //     todos(existingTodos = [], { storeFieldName, fieldName }) {
+                //         const queryArgs = parseApolloStoreFieldNameArgs(storeFieldName, fieldName);
+                //         if (queryArgs.filter && (queryArgs.filter.checked === true || !queryArgs.filter.checked)) {
+
+                //             return [newTodoRef, ...existingTodos];
+                //         }
+
+                //         return existingTodos;
+                //     }
+                //     }
+                // });
             }
         });
     }

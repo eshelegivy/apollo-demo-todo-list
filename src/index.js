@@ -28,7 +28,7 @@ const cacheOptions = {
 
 const client = new ApolloClient({
   cache: new InMemoryCache(cacheOptions),
-  uri: "https://6ogpm.sse.codesandbox.io/", // server code: https://codesandbox.io/s/todos-type-policies-mufdh
+  uri: "http://localhost:4000/",
   connectToDevTools: true,
 });
 

@@ -15,12 +15,16 @@ const DELETE_TODO_GQL = gql`
 export default () => {
     const [deleteTodo] = useMutation(DELETE_TODO_GQL, {
         update(cache, { data }) {
-            if (data.deleteTodo && data.deleteTodo.id) {
+            const ref = cache.identify(data.deleteTodo);
+            if (ref) {
                 cache.evict({ id: cache.identify(data.deleteTodo) });
             }
 
             cache.modify({
                 fields: {
+                    todos(existing = [], { readField }) {
+                        return existing.filter(currRef => readField('id', currRef) !== readField('id', ref));
+                    },
                     todosCount(existing = 0, { storeFieldName, fieldName }) {
                         const queryArgs = parseApolloStoreFieldNameArgs(storeFieldName, fieldName);
                         if (queryArgs.filter && (queryArgs.filter.checked === data.deleteTodo.checked || !queryArgs.filter.checked)) {
